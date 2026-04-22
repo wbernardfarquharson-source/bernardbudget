@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio — Bernard's Business Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --gold: #c9a84c;
+    --gold-dim: #8a6f30;
+    --green: #3ddc84;
+    --red: #ff6b6b;
+    --text: #f0ede6;
+    --text-dim: #888;
+    --text-muted: #555;
+    --radius: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; min-height: 100vh; }
+
+  nav {
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 10;
+  }
+
+  .nav-logo {
+    padding: 0 24px 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .nav-logo h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+  }
+
+  .nav-logo p {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 400;
+    transition: all 0.15s;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+  }
+
+  nav a:hover { color: var(--text); background: var(--surface2); }
+  nav a.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.05); }
+
+  nav a .icon { font-size: 16px; width: 20px; text-align: center; }
+
+  main {
+    margin-left: 220px;
+    flex: 1;
+    padding: 40px;
+    max-width: calc(100vw - 220px);
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .page-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .page-header p {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .card-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    color: var(--text);
+  }
+
+  .card-value.green { color: var(--green); }
+  .card-value.gold { color: var(--gold); }
+  .card-value.red { color: var(--red); }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  /* GRID */
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-top: 12px; }
+  .progress-track { background: var(--surface2); border-radius: 99px; height: 6px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 99px; background: var(--gold); transition: width 0.5s ease; }
+  .progress-fill.green { background: var(--green); }
+  .progress-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .btn-gold { background: var(--gold); color: #0d0d0d; }
+  .btn-gold:hover { background: #d4b05a; }
+  .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-muted); }
+  .btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(255,107,107,0.3); }
+  .btn-danger:hover { background: rgba(255,107,107,0.1); }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    width: 480px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    margin-bottom: 24px;
+    color: var(--gold);
+  }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus { border-color: var(--gold); }
+
+  .form-group select option { background: var(--surface2); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  tbody tr:hover { background: rgba(255,255,255,0.02); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .badge-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+  .badge-green { background: rgba(61,220,132,0.15); color: var(--green); }
+  .badge-red { background: rgba(255,107,107,0.15); color: var(--red); }
+  .badge-gray { background: rgba(255,255,255,0.08); color: var(--text-dim); }
+
+  /* STUDENT CARD */
+  .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+  .student-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.15s;
+  }
+
+  .student-card:hover { border-color: var(--gold-dim); }
+
+  .student-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+
+  .student-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .student-rate {
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .student-rate span { font-size: 12px; color: var(--text-dim); font-weight: 400; }
+
+  .student-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* BALANCE DISPLAY */
+  .balance-display {
+    background: linear-gradient(135deg, rgba(201,168,76,0.08) 0%, transparent 60%);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .balance-display .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--gold-dim);
+    margin-bottom: 8px;
+  }
+
+  .balance-display .amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 56px;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .balance-display .since {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 48px;
+    color: var(--text-muted);
+  }
+
+  .empty .icon { font-size: 32px; margin-bottom: 12px; }
+  .empty p { font-size: 13px; }
+
+  /* PAYMENT STATUS */
+  .payment-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .dot-green { background: var(--green); }
+  .dot-red { background: var(--red); }
+  .dot-gold { background: var(--gold); }
+
+  /* SCHEDULE */
+  .sched-header {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 4px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  .sched-time {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    height: 52px;
+  }
+
+  .sched-cell {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    height: 52px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .sched-cell:hover { border-color: var(--gold-dim); background: var(--surface2); }
+
+  .sched-cell.booked {
+    background: rgba(201,168,76,0.12);
+    border-color: var(--gold-dim);
+    cursor: default;
+  }
+
+  .sched-cell.booked:hover { background: rgba(201,168,76,0.18); }
+
+  .sched-cell-inner {
+    padding: 6px 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .sched-cell-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sched-cell-type {
+    font-size: 10px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sched-cell-remove {
+    position: absolute;
+    top: 4px; right: 4px;
+    background: rgba(255,107,107,0.2);
+    color: var(--red);
+    border: none;
+    border-radius: 4px;
+    width: 16px; height: 16px;
+    font-size: 10px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .sched-cell.booked:hover .sched-cell-remove { display: flex; }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  .text-right { text-align: right; }
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+  .text-gold { color: var(--gold); }
+  .text-dim { color: var(--text-dim); }
+  .mono { font-family: 'DM Mono', monospace; }
+
+  .mb-0 { margin-bottom: 0; }
+  .mt-16 { margin-top: 16px; }
+
+  /* TOOLTIP */
+  [title] { cursor: help; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      <h1>Studio</h1>
+      <p>Bernard's Business</p>
+    </div>
+    <a class="active" onclick="showPage('dashboard')" data-page="dashboard">
+      <span class="icon">◈</span> Dashboard
+    </a>
+    <a onclick="showPage('students')" data-page="students">
+      <span class="icon">♦</span> Students
+    </a>
+    <a onclick="showPage('payments')" data-page="payments">
+      <span class="icon">◇</span> Payments
+    </a>
+    <a onclick="showPage('expenses')" data-page="expenses">
+      <span class="icon">▽</span> Expenses
+    </a>
+    <a onclick="showPage('projections')" data-page="projections">
+      <span class="icon">△</span> Projections
+    </a>
+    <a onclick="showPage('schedule')" data-page="schedule">
+      <span class="icon">◻</span> Schedule
+    </a>
+    <a onclick="showPage('settings')" data-page="settings" style="margin-top: auto;">
+      <span class="icon">○</span> Settings
+    </a>
+  </nav>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div>
+          <h2>Good day, Bernard.</h2>
+          <p id="dashboard-date"></p>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-payment')">+ Log Payment</button>
+      </div>
+
+      <!-- Balance -->
+      <div class="balance-display">
+        <div class="label">Current Balance</div>
+        <div class="amount" id="dash-balance">$0</div>
+        <div class="since" id="dash-balance-since"></div>
+        <div style="margin-top: 16px; display: flex; gap: 10px;">
+          <button class="btn btn-ghost btn-sm" onclick="updateBalance()">Update Balance</button>
+        </div>
+      </div>
+
+      <div class="grid-4">
+        <div class="card">
+          <div class="card-label">Monthly Income</div>
+          <div class="card-value gold" id="dash-monthly-income">$0</div>
+          <div class="card-sub" id="dash-income-sub">from active students</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Monthly Expenses</div>
+          <div class="card-value red" id="dash-monthly-expenses">$0</div>
+          <div class="card-sub">fixed + variable</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Monthly Surplus</div>
+          <div class="card-value green" id="dash-surplus">$0</div>
+          <div class="card-sub" id="dash-surplus-pct">— % saved</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Active Students</div>
+          <div class="card-value" id="dash-students">0</div>
+          <div class="card-sub" id="dash-slots">teaching slots/week</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="section-title">Income vs Target</div>
+          <div id="dash-target-label" style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;"></div>
+          <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-fill green" id="dash-target-bar" style="width:0%"></div></div>
+            <div class="progress-labels"><span>$0</span><span id="dash-target-max">$64,000</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">Savings Rate</div>
+          <div id="dash-savings-label" style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;"></div>
+          <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-fill" id="dash-savings-bar" style="width:0%"></div></div>
+            <div class="progress-labels"><span>0%</span><span>50% goal</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent payments -->
+      <div class="card">
+        <div class="section-title">Recent Payments</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody id="dash-payments-body">
+              <tr><td colspan="5"><div class="empty"><p>No payments logged yet.</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="page-students" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Students</h2>
+          <p>Manage your roster and track who owes you what</p>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-student')">+ Add Student</button>
+      </div>
+      <div class="student-grid" id="student-grid">
+        <div class="empty" style="grid-column: 1/-1;">
+          <div class="icon">♦</div>
+          <p>No students yet. Add your first one.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div id="page-payments" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Payments</h2>
+          <p>Track who's paid and who hasn't</p>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-payment')">+ Log Payment</button>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Note</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="payments-body">
+              <tr><td colspan="7"><div class="empty"><p>No payments logged yet.</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div id="page-expenses" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Expenses</h2>
+          <p>Track what you spend each month</p>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-expense')">+ Add Expense</button>
+      </div>
+
+      <div class="grid-3" id="expense-summary-grid">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Frequency</th>
+                <th>Monthly Cost</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="expenses-body">
+              <tr><td colspan="5"><div class="empty"><p>No expenses added yet.</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJECTIONS -->
+    <div id="page-projections" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Projections</h2>
+          <p>Based on your current setup</p>
+        </div>
+      </div>
+
+      <div class="grid-3" id="proj-cards"></div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="section-title">Annual Breakdown</div>
+        <div id="proj-breakdown"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Car Payment Scenario</div>
+        <div style="color: var(--text-dim); font-size: 13px; margin-bottom: 16px;">Based on $29,000 car over 2 years</div>
+        <div id="proj-car"></div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE -->
+    <div id="page-schedule" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Weekly Schedule</h2>
+          <p>Your ideal teaching week</p>
+        </div>
+        <button class="btn btn-gold" onclick="openSlotModal(null)">+ Book Slot</button>
+      </div>
+      <!-- summary row -->
+      <div id="sched-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;"></div>
+      <!-- calendar -->
+      <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+        <!-- time gutter -->
+        <div id="sched-gutter" style="width:56px;flex-shrink:0;border-right:1px solid var(--border);"></div>
+        <!-- day columns -->
+        <div id="sched-cols" style="display:grid;grid-template-columns:repeat(7,1fr);flex:1;"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="page-settings" class="page">
+      <div class="page-header">
+        <div>
+          <h2>Settings</h2>
+          <p>Configure your targets and profile</p>
+        </div>
+      </div>
+
+      <div class="card" style="max-width: 520px;">
+        <div class="section-title">Financial Targets</div>
+        <div class="form-group">
+          <label>Annual Income Target ($)</label>
+          <input type="number" id="set-income-target" value="64000" oninput="saveSettings()">
+        </div>
+        <div class="form-group">
+          <label>Annual Expense Budget ($)</label>
+          <input type="number" id="set-expense-target" value="32000" oninput="saveSettings()">
+        </div>
+        <div class="form-group">
+          <label>Savings Goal (%)</label>
+          <input type="number" id="set-savings-goal" value="50" oninput="saveSettings()">
+        </div>
+        <div class="form-group">
+          <label>Teaching Weeks Per Year</label>
+          <input type="number" id="set-teaching-weeks" value="40" oninput="saveSettings()">
+        </div>
+        <hr class="divider">
+        <div class="section-title mb-0" style="border: none; padding-bottom: 0; margin-bottom: 16px;">Danger Zone</div>
+        <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODALS -->
+
+<!-- Add Student -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal">
+    <h3>Add Student</h3>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="s-name" placeholder="e.g. Jamie Thompson">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Subject</label>
+        <select id="s-subject">
+          <option value="Acting">Acting</option>
+          <option value="Voice">Voice</option>
+          <option value="Piano">Piano</option>
+          <option value="Audition Prep">Audition Prep</option>
+          <option value="Group Acting">Group Acting</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tier</label>
+        <select id="s-tier">
+          <option value="Private School">Private School ($75/hr)</option>
+          <option value="Adult Private">Adult Private ($65/hr)</option>
+          <option value="Intensive Acting">Intensive Acting ($85–100/hr)</option>
+          <option value="Group">Group ($30–40/session)</option>
+          <option value="Custom">Custom Rate</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Rate ($/hr or session)</label>
+        <input type="number" id="s-rate" placeholder="75" oninput="">
+      </div>
+      <div class="form-group">
+        <label>Sessions Per Week</label>
+        <input type="number" id="s-sessions" placeholder="1" min="0.5" step="0.5">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Notes (optional)</label>
+      <input type="text" id="s-notes" placeholder="e.g. pays monthly, Tuesday 4pm...">
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);margin-bottom:12px;">Schedule (optional)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Day</label>
+        <select id="s-day">
+          <option value="">No regular slot</option>
+          <option value="Mon">Monday</option>
+          <option value="Tue">Tuesday</option>
+          <option value="Wed">Wednesday</option>
+          <option value="Thu">Thursday</option>
+          <option value="Fri">Friday</option>
+          <option value="Sat">Saturday</option>
+          <option value="Sun">Sunday</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start Time</label>
+        <input type="time" id="s-time" step="900">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Duration</label>
+        <select id="s-duration">
+          <option value="45">45 min</option>
+          <option value="60" selected>1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;">
+        <div style="font-size:11px;color:var(--text-muted);padding-bottom:10px;">Leave Day blank to skip scheduling</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-student')">Cancel</button>
+      <button class="btn btn-gold" onclick="addStudent()">Add Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Payment -->
+<div class="modal-overlay" id="modal-payment">
+  <div class="modal">
+    <h3>Log Payment</h3>
+    <div class="form-group">
+      <label>Student</label>
+      <select id="p-student">
+        <option value="">— Select student —</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Amount ($)</label>
+        <input type="number" id="p-amount" placeholder="75">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="p-date">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Type</label>
+        <select id="p-type">
+          <option value="Received">Received ✓</option>
+          <option value="Pending">Pending (owed to me)</option>
+          <option value="Overdue">Overdue</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sessions Covered</label>
+        <input type="number" id="p-sessions-covered" placeholder="1" min="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <input type="text" id="p-note" placeholder="e.g. April sessions, cash...">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-payment')">Cancel</button>
+      <button class="btn btn-gold" onclick="logPayment()">Log Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Expense -->
+<div class="modal-overlay" id="modal-expense">
+  <div class="modal">
+    <h3>Add Expense</h3>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="e-name" placeholder="e.g. Rent, Netflix, Gas...">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="e-category">
+          <option>Housing</option>
+          <option>Transport</option>
+          <option>Food</option>
+          <option>Entertainment</option>
+          <option>Health & Fitness</option>
+          <option>Subscriptions</option>
+          <option>Travel</option>
+          <option>Personal Care</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Frequency</label>
+        <select id="e-frequency">
+          <option value="monthly">Monthly</option>
+          <option value="weekly">Weekly</option>
+          <option value="annual">Annual</option>
+          <option value="biweekly">Every 2 Weeks</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Amount ($)</label>
+      <input type="number" id="e-amount" placeholder="0">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-expense')">Cancel</button>
+      <button class="btn btn-gold" onclick="addExpense()">Add Expense</button>
+    </div>
+  </div>
+</div>
+
+<!-- Balance Update -->
+<div class="modal-overlay" id="modal-balance">
+  <div class="modal">
+    <h3>Update Balance</h3>
+    <div class="form-group">
+      <label>Current Balance ($)</label>
+      <input type="number" id="bal-amount" placeholder="0">
+    </div>
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <input type="text" id="bal-note" placeholder="e.g. after rent payment">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-balance')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveBalance()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Book Slot Modal -->
+<div class="modal-overlay" id="modal-slot">
+  <div class="modal">
+    <h3>Book a Slot</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Day</label>
+        <select id="slot-day">
+          <option value="Mon">Monday</option>
+          <option value="Tue">Tuesday</option>
+          <option value="Wed">Wednesday</option>
+          <option value="Thu">Thursday</option>
+          <option value="Fri">Friday</option>
+          <option value="Sat">Saturday</option>
+          <option value="Sun">Sunday</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start Time</label>
+        <input type="time" id="slot-time" step="900">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Duration</label>
+        <select id="slot-duration">
+          <option value="45">45 min</option>
+          <option value="60" selected>1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Session Type</label>
+        <select id="slot-type">
+          <option value="Private Lesson">Private Lesson</option>
+          <option value="Group Class">Group Class</option>
+          <option value="Intensive">Intensive</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Student</label>
+      <select id="slot-student">
+        <option value="">— Select student —</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <input type="text" id="slot-note" placeholder="e.g. Zoom call, studio B...">
+    </div>
+    <div id="slot-conflict-msg" style="color: var(--red); font-size: 13px; display: none; margin-top: 8px; padding: 10px; background: rgba(255,107,107,0.08); border-radius: 8px; border: 1px solid rgba(255,107,107,0.2);"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-slot')">Cancel</button>
+      <button class="btn btn-gold" onclick="bookSlot()">Book Slot</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ─── DATA ───────────────────────────────────────────────────────
+const KEYS = { students: 'studio_students', payments: 'studio_payments', expenses: 'studio_expenses', settings: 'studio_settings', balance: 'studio_balance', schedule: 'studio_schedule' };
+
+function load(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch { return []; } }
+function loadObj(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; } }
+function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+let students = load(KEYS.students);
+let payments = load(KEYS.payments);
+let expenses = load(KEYS.expenses);
+let schedule = load(KEYS.schedule); // array of {id, day, time, studentId, studentName, type, note}
+let settings = loadObj(KEYS.settings, { incomeTarget: 64000, expenseTarget: 32000, savingsGoal: 50, teachingWeeks: 40 });
+let balanceData = loadObj(KEYS.balance, { amount: 0, note: '', date: '' });
+
+// ─── NAV ────────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector(`nav a[data-page="${name}"]`).classList.add('active');
+  renderPage(name);
+}
+
+function renderPage(name) {
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'students') renderStudents();
+  if (name === 'payments') renderPayments();
+  if (name === 'expenses') renderExpenses();
+  if (name === 'projections') renderProjections();
+  if (name === 'schedule') renderSchedule();
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────
+function openModal(id) {
+  if (id === 'modal-payment') populateStudentSelect();
+  if (id === 'modal-slot') {
+    const sel = document.getElementById('slot-student');
+    sel.innerHTML = '<option value="">\u2014 Select student \u2014</option>' +
+      students.map(s => `<option value="${s.id}">${s.name} (${s.subject})</option>`).join('');
+    document.getElementById('slot-conflict-msg').style.display = 'none';
+  }
+  document.getElementById(id).classList.add('open');
+  const dateInput = document.getElementById('p-date');
+  if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ─── STUDENTS ───────────────────────────────────────────────────
+function addStudent() {
+  const name = document.getElementById('s-name').value.trim();
+  const subject = document.getElementById('s-subject').value;
+  const tier = document.getElementById('s-tier').value;
+  const rate = parseFloat(document.getElementById('s-rate').value) || 75;
+  const sessions = parseFloat(document.getElementById('s-sessions').value) || 1;
+  const notes = document.getElementById('s-notes').value.trim();
+  const day = document.getElementById('s-day').value;
+  const time = document.getElementById('s-time').value;
+  const duration = parseInt(document.getElementById('s-duration').value) || 60;
+
+  if (!name) return alert('Please enter a name.');
+
+  const studentId = Date.now();
+  students.push({ id: studentId, name, subject, tier, rate, sessions, notes, active: true });
+  save(KEYS.students, students);
+
+  // Auto-add to schedule if day and time were provided
+  if (day && time) {
+    // Check for conflicts first
+    const newStart = toMins(time);
+    const newEnd = newStart + duration;
+    const conflict = schedule.find(s => {
+      if (s.day !== day) return false;
+      const sS = toMins(s.time), sE = sS + (s.duration || 60);
+      return newStart < sE && newEnd > sS;
+    });
+    if (conflict) {
+      const cEnd = fmt(minsToTime(toMins(conflict.time) + (conflict.duration || 60)));
+      alert('Student added, but schedule conflict on ' + DAY_LABELS[day] + ': ' + conflict.studentName + ' is already booked ' + fmt(conflict.time) + '–' + cEnd + '. Add them to the schedule manually.');
+    } else {
+      schedule.push({ id: Date.now() + 1, day, time, duration, studentId,
+        studentName: name, subject, type: 'Private Lesson', note: '' });
+      save(KEYS.schedule, schedule);
+    }
+  }
+
+  closeModal('modal-student');
+  clearForm(['s-name','s-rate','s-sessions','s-notes','s-time']);
+  document.getElementById('s-day').value = '';
+  renderStudents();
+  renderDashboard();
+}
+
+function removeStudent(id) {
+  if (!confirm('Remove this student?')) return;
+  students = students.filter(s => s.id !== id);
+  save(KEYS.students, students);
+  renderStudents();
+  renderDashboard();
+}
+
+function renderStudents() {
+  const grid = document.getElementById('student-grid');
+  if (!students.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="icon">♦</div><p>No students yet. Add your first one.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = students.map(s => {
+    const weeklyEarning = s.rate * s.sessions;
+    const monthlyEarning = weeklyEarning * 4.33;
+    const paid = payments.filter(p => p.studentId === s.id && p.status === 'Received');
+    const pending = payments.filter(p => p.studentId === s.id && p.status !== 'Received');
+    return `
+      <div class="student-card">
+        <div class="student-name">${s.name}</div>
+        <div class="student-type">${s.subject} · ${s.tier}</div>
+        <div class="student-rate">$${s.rate}<span>/session · ${s.sessions}x/wk</span></div>
+        <div style="font-size:12px; color:var(--text-dim); margin-bottom: 4px;">~$${Math.round(monthlyEarning)}/month</div>
+        ${s.notes ? `<div style="font-size:11px; color:var(--text-muted); font-style:italic;">${s.notes}</div>` : ''}
+        <div style="margin-top: 12px; font-size: 12px; color: var(--text-dim);">
+          <span class="text-green">✓ ${paid.length} paid</span>
+          ${pending.length ? `· <span class="text-gold">${pending.length} pending</span>` : ''}
+        </div>
+        <div class="student-actions">
+          <button class="btn btn-ghost btn-sm" onclick="logPaymentFor(${s.id})">+ Payment</button>
+          <button class="btn btn-danger btn-sm" onclick="removeStudent(${s.id})">Remove</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function logPaymentFor(studentId) {
+  populateStudentSelect(studentId);
+  openModal('modal-payment');
+}
+
+// ─── PAYMENTS ───────────────────────────────────────────────────
+function populateStudentSelect(selectedId) {
+  const sel = document.getElementById('p-student');
+  sel.innerHTML = '<option value="">— Select student —</option>' +
+    students.map(s => `<option value="${s.id}" ${s.id === selectedId ? 'selected' : ''}>${s.name}</option>`).join('');
+}
+
+function logPayment() {
+  const studentId = parseInt(document.getElementById('p-student').value);
+  const amount = parseFloat(document.getElementById('p-amount').value);
+  const date = document.getElementById('p-date').value;
+  const status = document.getElementById('p-type').value;
+  const sessionsCovered = parseInt(document.getElementById('p-sessions-covered').value) || 1;
+  const note = document.getElementById('p-note').value.trim();
+
+  if (!studentId) return alert('Please select a student.');
+  if (!amount) return alert('Please enter an amount.');
+  if (!date) return alert('Please select a date.');
+
+  const student = students.find(s => s.id === studentId);
+  payments.push({ id: Date.now(), studentId, studentName: student?.name || 'Unknown', amount, date, status, sessionsCovered, note });
+  save(KEYS.payments, payments);
+  closeModal('modal-payment');
+  clearForm(['p-amount','p-note','p-sessions-covered']);
+  renderPayments();
+  renderDashboard();
+}
+
+function deletePayment(id) {
+  if (!confirm('Delete this payment record?')) return;
+  payments = payments.filter(p => p.id !== id);
+  save(KEYS.payments, payments);
+  renderPayments();
+  renderDashboard();
+}
+
+function renderPayments() {
+  const tbody = document.getElementById('payments-body');
+  if (!payments.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><p>No payments logged yet.</p></div></td></tr>`;
+    return;
+  }
+
+  const sorted = [...payments].sort((a,b) => new Date(b.date) - new Date(a.date));
+  tbody.innerHTML = sorted.map(p => {
+    const statusBadge = p.status === 'Received'
+      ? `<span class="badge badge-green">Received</span>`
+      : p.status === 'Overdue'
+      ? `<span class="badge badge-red">Overdue</span>`
+      : `<span class="badge badge-gold">Pending</span>`;
+    return `
+      <tr>
+        <td>${p.studentName}</td>
+        <td><span class="badge badge-gray">${p.sessionsCovered} session${p.sessionsCovered > 1 ? 's' : ''}</span></td>
+        <td class="mono text-dim">${formatDate(p.date)}</td>
+        <td class="${p.status === 'Received' ? 'text-green' : 'text-gold'} mono">$${p.amount.toFixed(2)}</td>
+        <td>${statusBadge}</td>
+        <td class="text-dim">${p.note || '—'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deletePayment(${p.id})">✕</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ─── EXPENSES ───────────────────────────────────────────────────
+function addExpense() {
+  const name = document.getElementById('e-name').value.trim();
+  const category = document.getElementById('e-category').value;
+  const frequency = document.getElementById('e-frequency').value;
+  const amount = parseFloat(document.getElementById('e-amount').value);
+
+  if (!name || !amount) return alert('Please fill in all fields.');
+
+  expenses.push({ id: Date.now(), name, category, frequency, amount });
+  save(KEYS.expenses, expenses);
+  closeModal('modal-expense');
+  clearForm(['e-name','e-amount']);
+  renderExpenses();
+  renderDashboard();
+}
+
+function deleteExpense(id) {
+  if (!confirm('Remove this expense?')) return;
+  expenses = expenses.filter(e => e.id !== id);
+  save(KEYS.expenses, expenses);
+  renderExpenses();
+  renderDashboard();
+}
+
+function toMonthly(amount, freq) {
+  if (freq === 'weekly') return amount * 4.33;
+  if (freq === 'annual') return amount / 12;
+  if (freq === 'biweekly') return amount * 2.17;
+  return amount;
+}
+
+function getTotalMonthlyExpenses() {
+  return expenses.reduce((sum, e) => sum + toMonthly(e.amount, e.frequency), 0);
+}
+
+function renderExpenses() {
+  const tbody = document.getElementById('expenses-body');
+  const summaryGrid = document.getElementById('expense-summary-grid');
+
+  const total = getTotalMonthlyExpenses();
+  const annual = total * 12;
+
+  summaryGrid.innerHTML = `
+    <div class="card">
+      <div class="card-label">Monthly Total</div>
+      <div class="card-value red">$${Math.round(total).toLocaleString()}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Annual Total</div>
+      <div class="card-value red">$${Math.round(annual).toLocaleString()}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Expense Items</div>
+      <div class="card-value">${expenses.length}</div>
+    </div>
+  `;
+
+  if (!expenses.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><p>No expenses added yet.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = expenses.map(e => `
+    <tr>
+      <td>${e.name}</td>
+      <td><span class="badge badge-gray">${e.category}</span></td>
+      <td class="text-dim">${e.frequency.charAt(0).toUpperCase() + e.frequency.slice(1)}</td>
+      <td class="text-red mono">$${Math.round(toMonthly(e.amount, e.frequency)).toLocaleString()}/mo</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteExpense(${e.id})">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+// ─── DASHBOARD ──────────────────────────────────────────────────
+function renderDashboard() {
+  // date
+  document.getElementById('dashboard-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  // balance
+  document.getElementById('dash-balance').textContent = '$' + balanceData.amount.toLocaleString();
+  document.getElementById('dash-balance-since').textContent = balanceData.date
+    ? `Last updated ${formatDate(balanceData.date)}${balanceData.note ? ' · ' + balanceData.note : ''}`
+    : 'Tap "Update Balance" to set your current balance';
+
+  // income
+  const weeklyIncome = students.reduce((sum, s) => sum + s.rate * s.sessions, 0);
+  const monthlyIncome = weeklyIncome * 4.33;
+  const annualIncome = weeklyIncome * settings.teachingWeeks;
+
+  document.getElementById('dash-monthly-income').textContent = '$' + Math.round(monthlyIncome).toLocaleString();
+  document.getElementById('dash-income-sub').textContent = `${students.length} active student${students.length !== 1 ? 's' : ''}`;
+
+  // expenses
+  const monthlyExp = getTotalMonthlyExpenses();
+  document.getElementById('dash-monthly-expenses').textContent = '$' + Math.round(monthlyExp).toLocaleString();
+
+  // surplus
+  const surplus = monthlyIncome - monthlyExp;
+  const savingsPct = monthlyIncome > 0 ? Math.round((surplus / monthlyIncome) * 100) : 0;
+  document.getElementById('dash-surplus').textContent = '$' + Math.round(surplus).toLocaleString();
+  document.getElementById('dash-surplus').className = 'card-value ' + (surplus >= 0 ? 'green' : 'red');
+  document.getElementById('dash-surplus-pct').textContent = savingsPct + '% saved';
+
+  // students
+  const totalSessions = students.reduce((sum, s) => sum + s.sessions, 0);
+  document.getElementById('dash-students').textContent = students.length;
+  document.getElementById('dash-slots').textContent = totalSessions + ' sessions/week';
+
+  // income vs target
+  const targetPct = Math.min(100, Math.round((annualIncome / settings.incomeTarget) * 100));
+  document.getElementById('dash-target-bar').style.width = targetPct + '%';
+  document.getElementById('dash-target-max').textContent = '$' + settings.incomeTarget.toLocaleString();
+  document.getElementById('dash-target-label').textContent = `$${Math.round(annualIncome).toLocaleString()} projected annually — ${targetPct}% of target`;
+
+  // savings bar
+  const savingsBarPct = Math.min(100, Math.round((savingsPct / settings.savingsGoal) * 100));
+  document.getElementById('dash-savings-bar').style.width = savingsBarPct + '%';
+  document.getElementById('dash-savings-label').textContent = `${savingsPct}% savings rate — goal is ${settings.savingsGoal}%`;
+
+  // recent payments
+  const tbody = document.getElementById('dash-payments-body');
+  if (!payments.length) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><p>No payments logged yet.</p></div></td></tr>`;
+    return;
+  }
+  const recent = [...payments].sort((a,b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
+  tbody.innerHTML = recent.map(p => `
+    <tr>
+      <td>${p.studentName}</td>
+      <td><span class="badge badge-gray">${p.sessionsCovered} session${p.sessionsCovered > 1 ? 's' : ''}</span></td>
+      <td class="mono text-dim">${formatDate(p.date)}</td>
+      <td class="${p.status === 'Received' ? 'text-green' : 'text-gold'} mono">$${p.amount.toFixed(2)}</td>
+      <td class="text-dim">${p.note || '—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ─── PROJECTIONS ────────────────────────────────────────────────
+function renderProjections() {
+  const weeklyIncome = students.reduce((sum, s) => sum + s.rate * s.sessions, 0);
+  const annualIncome = weeklyIncome * settings.teachingWeeks;
+  const annualExpenses = getTotalMonthlyExpenses() * 12;
+  const annualSurplus = annualIncome - annualExpenses;
+  const savingsPct = annualIncome > 0 ? Math.round((annualSurplus / annualIncome) * 100) : 0;
+
+  document.getElementById('proj-cards').innerHTML = `
+    <div class="card">
+      <div class="card-label">Projected Annual Income</div>
+      <div class="card-value gold">$${Math.round(annualIncome).toLocaleString()}</div>
+      <div class="card-sub">${settings.teachingWeeks} teaching weeks</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Annual Expenses</div>
+      <div class="card-value red">$${Math.round(annualExpenses).toLocaleString()}</div>
+      <div class="card-sub">all fixed + variable</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Annual Savings</div>
+      <div class="card-value ${annualSurplus >= 0 ? 'green' : 'red'}">$${Math.round(annualSurplus).toLocaleString()}</div>
+      <div class="card-sub">${savingsPct}% savings rate</div>
+    </div>
+  `;
+
+  document.getElementById('proj-breakdown').innerHTML = `
+    <div style="display: grid; gap: 12px;">
+      ${row('Weekly teaching income', '$' + Math.round(weeklyIncome).toLocaleString())}
+      ${row('Monthly teaching income', '$' + Math.round(weeklyIncome * 4.33).toLocaleString())}
+      ${row('Annual teaching income (' + settings.teachingWeeks + ' weeks)', '$' + Math.round(annualIncome).toLocaleString(), 'gold')}
+      ${row('Annual expenses', '-$' + Math.round(annualExpenses).toLocaleString(), 'red')}
+      ${row('Annual surplus', '$' + Math.round(annualSurplus).toLocaleString(), annualSurplus >= 0 ? 'green' : 'red')}
+      ${row('Savings rate', savingsPct + '%', savingsPct >= settings.savingsGoal ? 'green' : 'gold')}
+      ${row('Target: ' + settings.savingsGoal + '% savings', '$' + Math.round(annualIncome * settings.savingsGoal / 100).toLocaleString())}
+    </div>
+  `;
+
+  // Car scenario
+  const carPaymentMonthly = 29000 / 24;
+  const surplusWithCar = annualSurplus - (carPaymentMonthly * 12);
+  document.getElementById('proj-car').innerHTML = `
+    <div style="display: grid; gap: 12px;">
+      ${row('Car payment (monthly)', '$' + Math.round(carPaymentMonthly).toLocaleString(), 'red')}
+      ${row('Car payment (annual)', '$' + Math.round(carPaymentMonthly * 12).toLocaleString(), 'red')}
+      ${row('Annual savings WITH car payments', '$' + Math.round(surplusWithCar).toLocaleString(), surplusWithCar >= 0 ? 'gold' : 'red')}
+      ${row('Annual savings AFTER 2 years', '$' + Math.round(annualSurplus).toLocaleString(), 'green')}
+    </div>
+  `;
+}
+
+function row(label, value, color = '') {
+  return `
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border);">
+      <span style="color: var(--text-dim); font-size: 13px;">${label}</span>
+      <span class="mono ${color ? 'text-' + color : ''}" style="font-size: 14px; font-weight: 500;">${value}</span>
+    </div>
+  `;
+}
+
+// ─── BALANCE ────────────────────────────────────────────────────
+function updateBalance() { openModal('modal-balance'); }
+
+function saveBalance() {
+  const amount = parseFloat(document.getElementById('bal-amount').value);
+  const note = document.getElementById('bal-note').value.trim();
+  if (isNaN(amount)) return alert('Please enter a valid amount.');
+  balanceData = { amount, note, date: new Date().toISOString().split('T')[0] };
+  save(KEYS.balance, balanceData);
+  closeModal('modal-balance');
+  clearForm(['bal-amount','bal-note']);
+  renderDashboard();
+}
+
+// ─── SETTINGS ───────────────────────────────────────────────────
+function loadSettings() {
+  document.getElementById('set-income-target').value = settings.incomeTarget;
+  document.getElementById('set-expense-target').value = settings.expenseTarget;
+  document.getElementById('set-savings-goal').value = settings.savingsGoal;
+  document.getElementById('set-teaching-weeks').value = settings.teachingWeeks;
+}
+
+function saveSettings() {
+  settings.incomeTarget = parseFloat(document.getElementById('set-income-target').value) || 64000;
+  settings.expenseTarget = parseFloat(document.getElementById('set-expense-target').value) || 32000;
+  settings.savingsGoal = parseFloat(document.getElementById('set-savings-goal').value) || 50;
+  settings.teachingWeeks = parseFloat(document.getElementById('set-teaching-weeks').value) || 40;
+  save(KEYS.settings, settings);
+}
+
+function clearAllData() {
+  if (!confirm('This will delete ALL your data. Are you sure?')) return;
+  Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+  students = []; payments = []; expenses = []; schedule = [];
+  settings = { incomeTarget: 64000, expenseTarget: 32000, savingsGoal: 50, teachingWeeks: 40 };
+  balanceData = { amount: 0, note: '', date: '' };
+  renderDashboard();
+  alert('All data cleared.');
+}
+
+// ─── SCHEDULE ───────────────────────────────────────────────────
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAY_LABELS = { Mon:'Monday', Tue:'Tuesday', Wed:'Wednesday', Thu:'Thursday', Fri:'Friday', Sat:'Saturday', Sun:'Sunday' };
+
+const CAL_START = 7;   // 7 AM
+const CAL_END   = 22;  // 10 PM
+const PX_PER_HR = 80;  // pixels per hour
+
+function toMins(t) {
+  const [h, m] = (t || '0:0').split(':').map(Number);
+  return h * 60 + (m || 0);
+}
+function minsToTime(m) {
+  const h = Math.floor(m / 60) % 24;
+  const mn = m % 60;
+  return `${h.toString().padStart(2,'0')}:${mn.toString().padStart(2,'0')}`;
+}
+function fmt(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  const ap = h >= 12 ? 'PM' : 'AM';
+  const hr = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+  return `${hr}:${m.toString().padStart(2,'0')} ${ap}`;
+}
+
+// colour palette for students (cycles)
+const PALETTE = [
+  {bg:'rgba(201,168,76,0.18)',  border:'rgba(201,168,76,0.7)',  text:'#c9a84c'},
+  {bg:'rgba(61,220,132,0.15)',  border:'rgba(61,220,132,0.6)',  text:'#3ddc84'},
+  {bg:'rgba(100,160,255,0.15)', border:'rgba(100,160,255,0.6)', text:'#64a0ff'},
+  {bg:'rgba(255,140,100,0.15)', border:'rgba(255,140,100,0.6)', text:'#ff8c64'},
+  {bg:'rgba(200,100,255,0.15)', border:'rgba(200,100,255,0.6)', text:'#c864ff'},
+  {bg:'rgba(255,200,60,0.15)',  border:'rgba(255,200,60,0.6)',  text:'#ffc83c'},
+];
+function colourFor(studentId) {
+  const idx = students.findIndex(s => s.id === studentId);
+  return PALETTE[(idx < 0 ? 0 : idx) % PALETTE.length];
+}
+
+function renderSchedule() {
+  const gutter  = document.getElementById('sched-gutter');
+  const cols    = document.getElementById('sched-cols');
+  const summary = document.getElementById('sched-summary');
+  if (!gutter || !cols) return;
+
+  const hours = CAL_END - CAL_START;
+  const totalH = hours * PX_PER_HR;
+
+  // ── Summary cards ──
+  const totalSessions = schedule.length;
+  const weeklyRev = schedule.reduce((sum, s) => {
+    const st = students.find(x => x.id === s.studentId);
+    return sum + (st ? st.rate : 0);
+  }, 0);
+  const activeDays = DAYS.filter(d => schedule.some(s => s.day === d)).length;
+  summary.innerHTML = `
+    <div class="card"><div class="card-label">Sessions This Week</div><div class="card-value">${totalSessions}</div></div>
+    <div class="card"><div class="card-label">Weekly Revenue</div><div class="card-value gold">$${weeklyRev.toLocaleString()}</div></div>
+    <div class="card"><div class="card-label">Teaching Days</div><div class="card-value">${activeDays}</div></div>
+  `;
+
+  // ── Time gutter ──
+  let gutterHTML = `<div style="height:32px;"></div>`; // header spacer
+  for (let h = CAL_START; h <= CAL_END; h++) {
+    const isLast = h === CAL_END;
+    gutterHTML += `
+      <div style="height:${isLast ? 0 : PX_PER_HR}px;position:relative;">
+        <span style="position:absolute;top:-8px;right:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap;">
+          ${fmt(`${h.toString().padStart(2,'0')}:00`)}
+        </span>
+      </div>`;
+  }
+  gutter.innerHTML = gutterHTML;
+
+  // ── Day columns ──
+  let colsHTML = '';
+  DAYS.forEach(day => {
+    const daySlots = schedule.filter(s => s.day === day)
+      .sort((a,b) => toMins(a.time) - toMins(b.time));
+
+    // Header
+    let col = `
+      <div style="border-left:1px solid var(--border);">
+        <div style="height:32px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--border);background:var(--surface2);">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">${day}</span>
+        </div>
+        <div style="position:relative;height:${totalH}px;cursor:pointer;" onclick="openSlotModal('${day}')">
+    `;
+
+    // Hour grid lines
+    for (let h = 0; h < hours; h++) {
+      col += `<div style="position:absolute;top:${h * PX_PER_HR}px;left:0;right:0;border-top:1px solid var(--border);pointer-events:none;"></div>`;
+      col += `<div style="position:absolute;top:${h * PX_PER_HR + PX_PER_HR/2}px;left:0;right:0;border-top:1px dashed rgba(255,255,255,0.04);pointer-events:none;"></div>`;
+    }
+    col += `<div style="position:absolute;bottom:0;left:0;right:0;border-top:1px solid var(--border);pointer-events:none;"></div>`;
+
+    // Session blocks
+    daySlots.forEach(slot => {
+      const startMins = toMins(slot.time) - CAL_START * 60;
+      const dur = slot.duration || 60;
+      const top = (startMins / 60) * PX_PER_HR;
+      const height = Math.max((dur / 60) * PX_PER_HR - 4, 24);
+      const endTime = fmt(minsToTime(toMins(slot.time) + dur));
+      const col_ = colourFor(slot.studentId);
+      const st = students.find(x => x.id === slot.studentId);
+
+      col += `
+        <div onclick="event.stopPropagation()" style="
+          position:absolute;
+          top:${top + 2}px;
+          left:3px;right:3px;
+          height:${height}px;
+          background:${col_.bg};
+          border:1px solid ${col_.border};
+          border-left:3px solid ${col_.border};
+          border-radius:6px;
+          padding:4px 6px;
+          overflow:hidden;
+          z-index:3;
+          box-shadow:0 2px 6px rgba(0,0,0,0.25);
+          cursor:default;
+        ">
+          <div style="font-size:11px;font-weight:600;color:${col_.text};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${slot.studentName}</div>
+          <div style="font-size:10px;color:var(--text-dim);white-space:nowrap;">${fmt(slot.time)} – ${endTime}</div>
+          ${height > 44 ? `<div style="font-size:10px;color:var(--text-muted);">${slot.type}${st ? ' · $'+st.rate : ''}</div>` : ''}
+          ${slot.note && height > 56 ? `<div style="font-size:10px;color:var(--text-muted);font-style:italic;">${slot.note}</div>` : ''}
+          <button onclick="removeSlot(${slot.id})" style="
+            position:absolute;top:3px;right:3px;
+            background:rgba(255,107,107,0.2);color:var(--red);
+            border:none;border-radius:3px;
+            width:14px;height:14px;font-size:9px;
+            cursor:pointer;line-height:1;
+            display:flex;align-items:center;justify-content:center;
+          ">\u2715</button>
+        </div>`;
+    });
+
+    col += `</div></div>`; // close relative div + column
+    colsHTML += col;
+  });
+
+  cols.innerHTML = colsHTML;
+}
+
+function openSlotModal(day) {
+  const sel = document.getElementById('slot-student');
+  sel.innerHTML = '<option value="">\u2014 Select student \u2014</option>' +
+    students.map(s => `<option value="${s.id}">${s.name} (${s.subject})</option>`).join('');
+  if (day) document.getElementById('slot-day').value = day;
+  document.getElementById('slot-conflict-msg').style.display = 'none';
+  document.getElementById('slot-time').value = '';
+  openModal('modal-slot');
+}
+
+function bookSlot() {
+  const day      = document.getElementById('slot-day').value;
+  const time     = document.getElementById('slot-time').value;
+  const studentId = parseInt(document.getElementById('slot-student').value);
+  const type     = document.getElementById('slot-type').value;
+  const note     = document.getElementById('slot-note').value.trim();
+  const duration = parseInt(document.getElementById('slot-duration').value) || 60;
+
+  if (!studentId) { alert('Please select a student.'); return; }
+  if (!time)      { alert('Please enter a start time.'); return; }
+
+  const newStart = toMins(time);
+  const newEnd   = newStart + duration;
+
+  const conflict = schedule.find(s => {
+    if (s.day !== day) return false;
+    const sS = toMins(s.time), sE = sS + (s.duration || 60);
+    return newStart < sE && newEnd > sS;
+  });
+
+  if (conflict) {
+    const cEnd = fmt(minsToTime(toMins(conflict.time) + (conflict.duration || 60)));
+    const msg = document.getElementById('slot-conflict-msg');
+    msg.textContent = '\u26a0 ' + conflict.studentName + ' is already booked ' + fmt(conflict.time) + '\u2013' + cEnd + ' on ' + DAY_LABELS[day] + '. Choose a different time.';
+    msg.style.display = 'block';
+    return;
+  }
+
+  const student = students.find(s => s.id === studentId);
+  schedule.push({ id: Date.now(), day, time, duration, studentId,
+    studentName: student ? student.name : 'Unknown',
+    subject: student ? student.subject : '', type, note });
+  save(KEYS.schedule, schedule);
+  closeModal('modal-slot');
+  clearForm(['slot-note']);
+  document.getElementById('slot-time').value = '';
+  document.getElementById('slot-conflict-msg').style.display = 'none';
+  renderSchedule();
+}
+
+function removeSlot(id) {
+  if (!confirm('Remove this booking?')) return;
+  schedule = schedule.filter(s => s.id !== id);
+  save(KEYS.schedule, schedule);
+  renderSchedule();
+}
+
+// ─── UTILITIES ──────────────────────────────────────────────────
+function formatDate(d) {
+  if (!d) return '—';
+  const date = new Date(d + 'T00:00:00');
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function clearForm(ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; }); }
+
+// ─── INIT ────────────────────────────────────────────────────────
+// Prepopulate your known expenses
+function seedExpenses() {
+  if (expenses.length === 0) {
+    const seed = [
+      { name: 'Rent', category: 'Housing', frequency: 'monthly', amount: 1100 },
+      { name: 'Gas', category: 'Transport', frequency: 'monthly', amount: 100 },
+      { name: 'Movies', category: 'Entertainment', frequency: 'monthly', amount: 100 },
+      { name: 'Haircuts', category: 'Personal Care', frequency: 'monthly', amount: 55 },
+      { name: 'Phone', category: 'Subscriptions', frequency: 'monthly', amount: 70 },
+      { name: 'Claude Pro', category: 'Subscriptions', frequency: 'monthly', amount: 20 },
+      { name: 'Car Insurance', category: 'Transport', frequency: 'annual', amount: 500 },
+      { name: 'CrossFit', category: 'Health & Fitness', frequency: 'monthly', amount: 80 },
+      { name: 'Sudoku App', category: 'Subscriptions', frequency: 'monthly', amount: 5 },
+      { name: 'Food (takeout + groceries)', category: 'Food', frequency: 'monthly', amount: 650 },
+      { name: 'Travel (Europe)', category: 'Travel', frequency: 'annual', amount: 2000 },
+      { name: 'Travel (New Destination)', category: 'Travel', frequency: 'annual', amount: 3250 },
+    ];
+    seed.forEach((e, i) => expenses.push({ id: Date.now() + i, ...e }));
+    save(KEYS.expenses, expenses);
+  }
+}
+
+seedExpenses();
+renderDashboard();
+</script>
+</body>
+</html>
